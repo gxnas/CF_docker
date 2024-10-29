@@ -7,103 +7,6 @@
 - **Workers** 部署：复制 [_worker.js](https://raw.githubusercontent.com/gxnas/CF_docker/refs/heads/main/_worker.js) 代码，`保存并部署`即可
 - **Pages** 部署：`Fork` 后 `连接GitHub` 一键部署即可
 
-## 如何使用？ [视频教程](https://www.youtube.com/watch?v=l2jwq9CagNQ)
-
-例如您的Workers项目域名为：`docker.fxxk.dedyn.io`；
-
-### 1.官方镜像路径前面加域名
-```shell
-docker pull docker.fxxk.dedyn.io/stilleshan/frpc:latest
-```
-```shell
-docker pull docker.fxxk.dedyn.io/library/nginx:stable-alpine3.19-perl
-```
-
-### 2.一键设置镜像加速
-修改文件 `/etc/docker/daemon.json`（如果不存在则创建）
-```shell
-sudo mkdir -p /etc/docker
-sudo tee /etc/docker/daemon.json <<-'EOF'
-{
-  "registry-mirrors": ["https://docker.fxxk.dedyn.io"]  # 请替换为您自己的Worker自定义域名
-}
-EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-```
-### 3. 配置常见仓库的镜像加速
-#### 3.1 配置  
-Containerd 较简单，它支持任意 `registry` 的 `mirror`，只需要修改配置文件 `/etc/containerd/config.toml`，添加如下的配置：  
-```yaml
-    [plugins."io.containerd.grpc.v1.cri".registry]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-          endpoint = ["https://xxxx.xx.com"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."k8s.gcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."gcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
-          endpoint = ["https://xxxx.xx.com"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
-          endpoint = ["https://xxxx.xx.com"]
-```
-`Podman` 同样支持任意 `registry` 的 `mirror`，修改配置文件 `/etc/containers/registries.conf`，添加配置：  
-```yaml
-unqualified-search-registries = ['docker.io', 'k8s.gcr.io', 'gcr.io', 'ghcr.io', 'quay.io']
-
-[[registry]]
-prefix = "docker.io"
-insecure = true
-location = "registry-1.docker.io"
-
-[[registry.mirror]]
-location = "https://xxxx.onrender.com"
-
-[[registry]]
-prefix = "k8s.gcr.io"
-insecure = true
-location = "k8s.gcr.io"
-
-[[registry.mirror]]
-location = "https://xxxx.onrender.com"
-
-[[registry]]
-prefix = "gcr.io"
-insecure = true
-location = "gcr.io"
-
-[[registry.mirror]]
-location = "https://xxxx.onrender.com"
-
-[[registry]]
-prefix = "ghcr.io"
-insecure = true
-location = "ghcr.io"
-
-[[registry.mirror]]
-location = "https://xxxx.onrender.com"
-
-[[registry]]
-prefix = "quay.io"
-insecure = true
-location = "quay.io"
-
-[[registry.mirror]]
-location = "https://xxxx.onrender.com"
-
-```
-
-#### 3.3 使用
-对于以上配置，k8s在使用的时候，就可以直接`pull`外部无法pull的镜像了 
- 手动可以直接`pull` 配置了`mirror`的仓库  
- `crictl pull registry.k8s.io/kube-proxy:v1.28.4`
- `docker  pull nginx:1.21`
-
-
-
-
-
 
 ## 变量说明
 | 变量名 | 示例 | 必填 | 备注 | 
@@ -111,6 +14,35 @@ location = "https://xxxx.onrender.com"
 | URL302 | https://t.me/CMLiussss |❌| 主页302跳转 |
 | URL | https://www.baidu.com/ |❌| 主页伪装(设为`nginx`则伪装为nginx默认页面) |
 | UA | netcraft |❌| 支持多元素, 元素之间使用空格或换行作间隔 |
+
+
+## 如何使用？ [视频教程](https://www.youtube.com/watch?v=l2jwq9CagNQ)
+
+#### 一、使用该work 设定为注册表仓库。
+
+优点：可以直连打开注册表，并下载镜像。
+
+缺点：
+ 1、缺点搜索结果有所缺失（没有收藏数星标 拉取只有latest版本下载）。
+ 2、work上不能设定URL URL302变量来伪装主页防止滥用和爬虫访问？可以设置UA变量 但目前效果不明。
+ 3、同时下载的映像会有该仓库地址的前置标识。
+ 上述缺点不知是否可改进代码解决，个人感觉收藏数和拉取版本是可代码修复的。其他的则是我的知识盲区，感觉是不行
+
+#### 二、使用该work 设定为官方仓库的注册表镜像
+ 优点：pull拉取无问题。因为可以用URL URL302变量，藏起自己的镜像地址。无需担心免费超额
+ 缺点：无法直接打开注册表。需要代理注册表仓库地址
+
+ 上述缺点可通过在群晖上.控制面板-网络-代理服务器-填入自己的代理来访问 这里有详细解答 可以在只需要访问注册表的时候临时打开，并不会中断nas的网络。
+ 或者在dsm上架设一个透明代理 只代理docker.io等域名来无痕解决。目前我个人是这样，还挺方便的（因为本来就有需求要给某个docker代理特定链接）
+ 而且这样的使用方式比上面用代理服务器的方式更好，上面的方式会短暂的让群晖的ddns失效，而透明代理这个不会
+
+ （我人使用方法是在docker开一个host网络的v2rayA。补齐dsm的iptables模块（使用tproxy的前提），然后开启透明代理为规则端口分流一致，实现方式为tproxy。规则端口为RoutingA 里面设定只代理docker相关，其他直连或自己写。）供参考
+
+ 另外说下 在shell下也可以使用
+ docker search dockpull.你的镜像.com/mysql 来搜索
+ 然后拉取的时候建议设好镜像设定 （这样可以避免上述在dsm注册表设定为仓库那样的缺点3
+ 就可以直接用docker pull 映像名 来拉取而不带你的镜像域名地址（像官方那样
+ 但是缺点也是CF的work不能设定URL URL302变量
 
 
 
