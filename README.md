@@ -1,4 +1,4 @@
-# CF-Workers-docker.io：Docker仓库镜像代理工具
+# CF-docker：Docker仓库镜像代理工具
 
 这个项目是一个基于 Cloudflare Workers 的 Docker 镜像代理工具。它能够中转对 Docker 官方镜像仓库的请求，解决一些访问限制和加速访问的问题。本代码在[CM大佬](https://github.com/cmliu/CF-Workers-docker.io/blob/main/_worker.js) 的源码基础上修改得来。
 
@@ -147,10 +147,16 @@ location = "https://xxxx.onrender.com"
 
 
 # 公益Docker镜像地址
-https://dockerpull.com/
-https://dockerproxy.cn/
-https://dockerpull.com/
-https://dockerproxy.cn/
-https://docker.actima.top/
-https://dockerproxy.github.io/
-https://dh.jiasu.in/
+1、`https://dockerpull.com/`
+
+2、`https://dockerproxy.cn/`
+
+3、`https://dockerpull.com/`
+
+4、`https://dockerproxy.cn/`
+
+5、`https://docker.actima.top/`
+
+6、`https://dockerproxy.github.io/`
+
+7、`https://dh.jiasu.in/`
